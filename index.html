@@ -3,516 +3,618 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Teoría de Colas</title>
+    <title>Calculadora de Regresión Lineal (Avanzada)</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
             padding: 20px;
+            background-color: #f4f7f6;
+            color: #333;
         }
-
-        .container {
-            max-width: 1200px;
+        main {
+            max-width: 900px;
             margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
-
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
+        h1, h2 {
+            color: #005a9c;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 8px;
         }
-
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            font-size: 1.1em;
-            opacity: 0.9;
-        }
-
-        .content {
+        .container {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            padding: 30px;
+            gap: 20px;
         }
-
-        .input-section, .results-section {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 15px;
+        .full-width {
+            grid-column: 1 / -1;
         }
-
-        .input-section h2, .results-section h2 {
-            color: #667eea;
-            margin-bottom: 20px;
-            font-size: 1.8em;
-            border-bottom: 3px solid #667eea;
-            padding-bottom: 10px;
-        }
-
-        .model-selector {
-            margin-bottom: 25px;
-        }
-
-        .model-selector label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 600;
-        }
-
-        .model-selector select {
+        textarea {
             width: 100%;
+            height: 200px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            box-sizing: border-box; 
+        }
+        button {
             padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
             font-size: 16px;
-            transition: border-color 0.3s;
-        }
-
-        .model-selector select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .input-group {
-            margin-bottom: 20px;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 600;
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-
-        .input-group input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .input-description {
-            font-size: 0.9em;
-            color: #666;
-            margin-top: 5px;
-        }
-
-        .calculate-btn {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-weight: bold;
+            background-color: #007bff;
             color: white;
             border: none;
-            border-radius: 8px;
-            font-size: 18px;
-            font-weight: 600;
+            border-radius: 4px;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: background-color 0.3s;
         }
-
-        .calculate-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        button:hover {
+            background-color: #0056b3;
         }
-
-        .calculate-btn:active {
-            transform: translateY(0);
+        #resultados {
+            grid-column: 1 / -1;
+            margin-top: 20px;
         }
-
-        .result-item {
-            background: white;
+        pre {
+            background-color: #eee;
             padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 10px;
-            border-left: 4px solid #667eea;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: transform 0.2s;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: "Courier New", Courier, monospace;
         }
-
-        .result-item:hover {
-            transform: translateX(5px);
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
         }
-
-        .result-label {
-            font-weight: 600;
-            color: #333;
-        }
-
-        .result-value {
-            font-size: 1.3em;
-            color: #667eea;
-            font-weight: 700;
-        }
-
-        .error-message {
-            background: #ff4757;
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
-        }
-
-        .warning-message {
-            background: #ffa502;
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
-        }
-
-        .probability-section {
-            margin-top: 25px;
-            padding-top: 25px;
-            border-top: 2px solid #ddd;
-        }
-
-        .probability-section h3 {
-            color: #667eea;
-            margin-bottom: 15px;
-        }
-
-        @media (max-width: 968px) {
-            .content {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .formula-info {
-            background: #e3f2fd;
+        th, td {
+            border: 1px solid #ddd;
             padding: 10px;
-            border-radius: 5px;
-            font-size: 0.85em;
-            color: #1565c0;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .error, .warning {
+            color: #D8000C;
+            background-color: #FFD2D2;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: bold;
             margin-top: 10px;
         }
-
-        .hidden {
-            display: none;
+        .warning {
+            color: #9F6000;
+            background-color: #FEEFB3;
+        }
+        .nota {
+            font-size: 0.9em;
+            color: #555;
+            background-color: #fffbe6;
+            border: 1px solid #ffe58f;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+        .config-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .config-item label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .config-item select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>📊 Calculadora de Teoría de Colas</h1>
-            <p>Modelos M/M/1 y M/M/k con Medidas de Desempeño</p>
-        </div>
-
-        <div class="content">
-            <div class="input-section">
-                <h2>Parámetros de Entrada</h2>
-                
-                <div id="errorMsg" class="error-message"></div>
-                <div id="warningMsg" class="warning-message"></div>
-
-                <div class="model-selector">
-                    <label for="model">Seleccionar Modelo:</label>
-                    <select id="model" onchange="toggleModel()">
-                        <option value="mm1">M/M/1 (Un servidor)</option>
-                        <option value="mmk">M/M/k (Múltiples servidores)</option>
-                    </select>
-                </div>
-
-                <div class="input-group" id="kGroup" style="display: none;">
-                    <label for="k">Número de Servidores (k):</label>
-                    <input type="number" id="k" value="3" min="1" step="1">
-                    <div class="input-description">Cantidad de servidores en paralelo</div>
-                </div>
-
-                <div class="input-group">
-                    <label for="lambda">Tasa de Llegada (λ):</label>
-                    <input type="number" id="lambda" value="4" min="0" step="0.1">
-                    <div class="input-description">Clientes que llegan por unidad de tiempo</div>
-                </div>
-
-                <div class="input-group">
-                    <label for="mu">Tasa de Servicio (μ):</label>
-                    <input type="number" id="mu" value="5" min="0" step="0.1">
-                    <div class="input-description">Clientes atendidos por servidor por unidad de tiempo</div>
-                </div>
-
-                <div class="probability-section">
-                    <h3>Probabilidades Específicas (Opcional)</h3>
-                    
-                    <div class="input-group">
-                        <label for="n">Número de clientes (n) para P(n):</label>
-                        <input type="number" id="n" value="3" min="0" step="1">
-                        <div class="input-description">Calcular probabilidad de tener exactamente n clientes</div>
-                    </div>
-
-                    <div class="input-group">
-                        <label for="nMax">Número máximo para P(≤n):</label>
-                        <input type="number" id="nMax" value="3" min="0" step="1">
-                        <div class="input-description">Calcular probabilidad de tener a lo más n clientes</div>
-                    </div>
-                </div>
-
-                <button class="calculate-btn" onclick="calculate()">🔬 Calcular Medidas de Desempeño</button>
-
-                <div class="formula-info">
-                    <strong>Nota:</strong> El sistema debe estar en estado estacionario.<br>
-                    • M/M/1: λ < μ<br>
-                    • M/M/k: λ < k·μ
-                </div>
+    <main>
+        <h1>Calculadora de Regresión Lineal y Pruebas</h1>
+        
+        <div class="container">
+            <div>
+                <label for="data-x"><b>Datos de X (separados por línea):</b></label>
+                <textarea id="data-x" placeholder="Ej:
+1.1
+2.3
+3.5
+4.2"></textarea>
+            </div>
+            <div>
+                <label for="data-y"><b>Datos de Y (separados por línea):</b></label>
+                <textarea id="data-y" placeholder="Ej:
+5.0
+7.1
+9.3
+11.0"></textarea>
             </div>
 
-            <div class="results-section">
-                <h2>Resultados</h2>
-                <div id="results">
-                    <p style="text-align: center; color: #999; padding: 50px 20px;">
-                        Ingrese los parámetros y presione "Calcular" para ver los resultados
-                    </p>
-                </div>
+            <div class="config-item">
+                <label for="alpha">Nivel de Significancia (α)</label>
+                <select id="alpha">
+                    <option value="0.20">0.20 (80% Confianza)</option>
+                    <option value="0.10">0.10 (90% Confianza)</option>
+                    <option value="0.05" selected>0.05 (95% Confianza)</option>
+                    <option value="0.02">0.02 (98% Confianza)</option>
+                    <option value="0.01">0.01 (99% Confianza)</option>
+                </select>
             </div>
+
+            <button class="full-width" onclick="calcular()">Calcular</button>
+            
+            <div id="resultados" class="full-width"></div>
         </div>
-    </div>
+    </main>
 
     <script>
-        function toggleModel() {
-            const model = document.getElementById('model').value;
-            const kGroup = document.getElementById('kGroup');
-            
-            if (model === 'mmk') {
-                kGroup.style.display = 'block';
+        // --- Tablas de Valores Críticos (del PDF) ---
+
+        /**
+         * Tabla t-Student (Fuente 218)
+         * Columnas son α/2 (para IC de dos colas)
+         * Filas son grados de libertad (gl = n-2)
+         */
+        const tTable = {
+            // gl: { "0.1": val, "0.05": val, "0.025": val, "0.01": val, "0.005": val }
+            1:  { "0.1": 3.0777, "0.05": 6.3137, "0.025": 12.7062, "0.01": 31.8210, "0.005": 63.6559 },
+            2:  { "0.1": 1.8856, "0.05": 2.9200, "0.025": 4.3027, "0.01": 6.9645, "0.005": 9.9250 },
+            3:  { "0.1": 1.6377, "0.05": 2.3534, "0.025": 3.1824, "0.01": 4.5407, "0.005": 5.8408 },
+            4:  { "0.1": 1.5332, "0.05": 2.1318, "0.025": 2.7765, "0.01": 3.7469, "0.005": 4.6041 },
+            5:  { "0.1": 1.4759, "0.05": 2.0150, "0.025": 2.5706, "0.01": 3.3649, "0.005": 4.0321 },
+            6:  { "0.1": 1.4398, "0.05": 1.9432, "0.025": 2.4469, "0.01": 3.1427, "0.005": 3.7074 },
+            7:  { "0.1": 1.4149, "0.05": 1.8946, "0.025": 2.3646, "0.01": 2.9979, "0.005": 3.4995 },
+            8:  { "0.1": 1.3968, "0.05": 1.8595, "0.025": 2.3060, "0.01": 2.8965, "0.005": 3.3554 },
+            9:  { "0.1": 1.3830, "0.05": 1.8331, "0.025": 2.2622, "0.01": 2.8214, "0.005": 3.2498 },
+            10: { "0.1": 1.3722, "0.05": 1.8125, "0.025": 2.2281, "0.01": 2.7638, "0.005": 3.1693 },
+            11: { "0.1": 1.3634, "0.05": 1.7959, "0.025": 2.2010, "0.01": 2.7181, "0.005": 3.1058 },
+            12: { "0.1": 1.3562, "0.05": 1.7823, "0.025": 2.1788, "0.01": 2.6810, "0.005": 3.0545 },
+            13: { "0.1": 1.3502, "0.05": 1.7709, "0.025": 2.1604, "0.01": 2.6503, "0.005": 3.0123 },
+            14: { "0.1": 1.3450, "0.05": 1.7613, "0.025": 2.1448, "0.01": 2.6245, "0.005": 2.9768 },
+            15: { "0.1": 1.3406, "0.05": 1.7531, "0.025": 2.1315, "0.01": 2.6025, "0.005": 2.9467 },
+            16: { "0.1": 1.3368, "0.05": 1.7459, "0.025": 2.1199, "0.01": 2.5835, "0.005": 2.9208 },
+            17: { "0.1": 1.3334, "0.05": 1.7396, "0.025": 2.1098, "0.01": 2.5669, "0.005": 2.8982 },
+            18: { "0.1": 1.3304, "0.05": 1.7341, "0.025": 2.1009, "0.01": 2.5524, "0.005": 2.8784 },
+            19: { "0.1": 1.3277, "0.05": 1.7291, "0.025": 2.0930, "0.01": 2.5395, "0.005": 2.8609 },
+            20: { "0.1": 1.3253, "0.05": 1.7247, "0.025": 2.0860, "0.01": 2.5280, "0.005": 2.8453 }
+        };
+
+        /**
+         * Tabla Durbin-Watson (Fuente 36)
+         * Valores para k'=1 (1 regresor) y α=0.05
+         */
+        const dwTable_k1 = {
+            15: { dL: 1.077, dU: 1.361 },
+            16: { dL: 1.106, dU: 1.371 },
+            17: { dL: 1.133, dU: 1.381 },
+            18: { dL: 1.158, dU: 1.391 },
+            19: { dL: 1.180, dU: 1.401 },
+            20: { dL: 1.201, dU: 1.411 },
+            21: { dL: 1.221, dU: 1.420 },
+            22: { dL: 1.239, dU: 1.429 },
+            23: { dL: 1.257, dU: 1.437 },
+            24: { dL: 1.273, dU: 1.446 },
+            25: { dL: 1.288, dU: 1.454 },
+            26: { dL: 1.302, dU: 1.461 },
+            27: { dL: 1.316, dU: 1.469 },
+            28: { dL: 1.328, dU: 1.476 },
+            29: { dL: 1.341, dU: 1.483 },
+            30: { dL: 1.352, dU: 1.489 },
+            31: { dL: 1.363, dU: 1.496 },
+            32: { dL: 1.373, dU: 1.502 },
+            33: { dL: 1.383, dU: 1.508 },
+            34: { dL: 1.393, dU: 1.514 },
+            35: { dL: 1.402, dU: 1.519 },
+            36: { dL: 1.411, dU: 1.525 },
+            37: { dL: 1.419, dU: 1.530 },
+            38: { dL: 1.427, dU: 1.535 },
+            39: { dL: 1.435, dU: 1.540 },
+            40: { dL: 1.442, dU: 1.544 },
+            45: { dL: 1.475, dU: 1.566 },
+            50: { dL: 1.503, dU: 1.585 },
+            55: { dL: 1.528, dU: 1.601 },
+            60: { dL: 1.549, dU: 1.616 },
+            65: { dL: 1.567, dU: 1.629 },
+            70: { dL: 1.583, dU: 1.641 },
+            75: { dL: 1.598, dU: 1.652 },
+            80: { dL: 1.611, dU: 1.662 },
+            85: { dL: 1.624, dU: 1.671 },
+            90: { dL: 1.635, dU: 1.679 },
+            95: { dL: 1.645, dU: 1.687 },
+            100: { dL: 1.654, dU: 1.694 }
+        };
+
+        // --- Funciones Auxiliares de Estadística ---
+
+        function parseInput(text) {
+            return text.trim().split(/[\s,]+/).filter(Boolean).map(Number);
+        }
+
+        function sum(arr) {
+            return arr.reduce((a, b) => a + b, 0);
+        }
+
+        function mean(arr) {
+            return sum(arr) / arr.length;
+        }
+
+        function normalCDF(z) {
+            const p = 0.2316419, b1 = 0.319381530, b2 = -0.356563782;
+            const b3 = 1.781477937, b4 = -1.821255978, b5 = 1.330274429;
+            const t = 1 / (1 + p * Math.abs(z));
+            const phi = (1 / Math.sqrt(2 * Math.PI)) * Math.exp(-0.5 * z * z);
+            const P = 1 - phi * (b1 * t + b2 * Math.pow(t, 2) + b3 * Math.pow(t, 3) + b4 * Math.pow(t, 4) + b5 * Math.pow(t, 5));
+            return z > 0 ? P : 1 - P;
+        }
+
+        /**
+         * Busca el valor t crítico.
+         * gl: grados de libertad
+         * alpha_2_key: el valor de la columna (ej: "0.025")
+         */
+        function getTValue(gl, alpha_2_key) {
+            if (gl <= 20) {
+                if (tTable[gl] && tTable[gl][alpha_2_key]) {
+                    return tTable[gl][alpha_2_key];
+                }
+                return null; // Alpha no está en la tabla
             } else {
-                kGroup.style.display = 'none';
+                return null; // gl > 20
             }
         }
-
-        function factorial(n) {
-            if (n <= 1) return 1;
-            let result = 1;
-            for (let i = 2; i <= n; i++) {
-                result *= i;
+        
+        /**
+         * Busca los valores dL y dU.
+         * Busca el n más cercano *hacia abajo* si no hay coincidencia exacta.
+         */
+        function getDWValues(n) {
+            if (dwTable_k1[n]) {
+                return dwTable_k1[n];
             }
-            return result;
-        }
-
-        function calculateMM1(lambda, mu, n, nMax) {
-            const rho = lambda / mu;
-            
-            // Medidas básicas
-            const P0 = 1 - rho;
-            const Pn = (1 - rho) * Math.pow(rho, n);
-            const Ls = lambda / (mu - lambda);
-            const Lq = (lambda * lambda) / (mu * (mu - lambda));
-            const Ws = 1 / (mu - lambda);
-            const Wq = lambda / (mu * (mu - lambda));
-            const Pw = lambda / mu;
-
-            // P(≤n)
-            let PnMax = 0;
-            for (let i = 0; i <= nMax; i++) {
-                PnMax += (1 - rho) * Math.pow(rho, i);
-            }
-
-            return { P0, Pn, Ls, Lq, Ws, Wq, Pw, rho, PnMax };
-        }
-
-        function calculateMMk(k, lambda, mu, n, nMax) {
-            const rho = lambda / (k * mu);
-            const rhoK = lambda / mu;
-            
-            // Calcular P0
-            let sum = 0;
-            for (let i = 0; i <= k - 1; i++) {
-                sum += Math.pow(rhoK, i) / factorial(i);
-            }
-            const P0 = 1 / (sum + (Math.pow(rhoK, k) / (factorial(k) * (1 - rho))));
-
-            // Calcular Pn
-            let Pn;
-            if (n <= k) {
-                Pn = (Math.pow(rhoK, n) / factorial(n)) * P0;
-            } else {
-                Pn = (Math.pow(rho, n) * Math.pow(k, k) / factorial(k)) * P0;
-            }
-
-            // Lq
-            const Lq = (Math.pow(rho, k + 1) * Math.pow(k, k - 1) / (factorial(k - 1) * Math.pow(1 - rho, 2))) * P0;
-            
-            // Ls
-            const Ls = Lq + rhoK;
-            
-            // Wq
-            const Wq = Lq / lambda;
-            
-            // Ws
-            const Ws = Wq + (1 / mu);
-            
-            // Pw
-            const Pw = (1 / factorial(k)) * Math.pow(lambda / mu, k) * (k * mu / (k * mu - lambda)) * P0;
-
-            // P(≤nMax)
-            let PnMax = 0;
-            for (let i = 0; i <= nMax; i++) {
-                if (i <= k) {
-                    PnMax += (Math.pow(rhoK, i) / factorial(i)) * P0;
-                } else {
-                    PnMax += (Math.pow(rho, i) * Math.pow(k, k) / factorial(k)) * P0;
+            // Buscar el n más cercano hacia abajo
+            let closest_n = 0;
+            for (const key in dwTable_k1) {
+                const n_key = parseInt(key);
+                if (n_key <= n && n_key > closest_n) {
+                    closest_n = n_key;
                 }
             }
-
-            return { P0, Pn, Ls, Lq, Ws, Wq, Pw, rho, PnMax };
+            if (closest_n > 0) {
+                return dwTable_k1[closest_n];
+            }
+            return null; // n es demasiado pequeño (menor a 15)
         }
 
-        function calculate() {
-            // Limpiar mensajes
-            document.getElementById('errorMsg').style.display = 'none';
-            document.getElementById('warningMsg').style.display = 'none';
+        // --- Función Principal de Cálculo ---
 
-            // Obtener valores
-            const model = document.getElementById('model').value;
-            const lambda = parseFloat(document.getElementById('lambda').value);
-            const mu = parseFloat(document.getElementById('mu').value);
-            const n = parseInt(document.getElementById('n').value);
-            const nMax = parseInt(document.getElementById('nMax').value);
-            const k = model === 'mmk' ? parseInt(document.getElementById('k').value) : 1;
+        function calcular() {
+            const output = document.getElementById('resultados');
+            output.innerHTML = ''; 
 
-            // Validaciones
-            if (isNaN(lambda) || isNaN(mu) || lambda <= 0 || mu <= 0) {
-                showError('Por favor, ingrese valores válidos para λ y μ (mayores que 0)');
-                return;
+            try {
+                const x_data = parseInput(document.getElementById('data-x').value);
+                const y_data = parseInput(document.getElementById('data-y').value);
+                const alpha = parseFloat(document.getElementById('alpha').value);
+                const confianza = (1 - alpha) * 100;
+                const alpha_2_key = (alpha / 2).toString(); // Clave para la tabla t, ej: "0.025"
+
+                if (x_data.length === 0 || y_data.length === 0) {
+                    throw new Error("Por favor, ingresa datos para X e Y.");
+                }
+                if (x_data.length !== y_data.length) {
+                    throw new Error("La cantidad de datos de X e Y debe ser la misma.");
+                }
+                if (x_data.length < 3) {
+                    throw new Error("Se necesitan al menos 3 puntos de datos para los cálculos (n-2 > 0).");
+                }
+
+                const n = x_data.length;
+                const x_bar = mean(x_data);
+                const y_bar = mean(y_data);
+
+                // --- 1. Cálculos de Regresión Lineal ---
+
+                let Sxx = 0;
+                let Syy = 0;
+                let Sxy = 0;
+                let sum_x_sq = 0; // Necesario para V(b0)
+
+                for (let i = 0; i < n; i++) {
+                    Sxx += Math.pow(x_data[i] - x_bar, 2); // [cite: 2]
+                    Syy += Math.pow(y_data[i] - y_bar, 2); // [cite: 2]
+                    Sxy += (x_data[i] - x_bar) * (y_data[i] - y_bar); // [cite: 2]
+                    sum_x_sq += Math.pow(x_data[i], 2);
+                }
+
+                const beta_1 = Sxy / Sxx; // [cite: 2]
+                const beta_0 = y_bar - beta_1 * x_bar; // [cite: 4]
+                const r_xy = Sxy / Math.sqrt(Sxx * Syy); // [cite: 5]
+                const R_cuadrado_calc = Sxy * Sxy / (Sxx * Syy);
+
+                const y_hat = [];
+                const residuos = [];
+                let SCE = 0; 
+                let SCR = 0; 
+
+                for (let i = 0; i < n; i++) {
+                    const y_pred = beta_0 + beta_1 * x_data[i];
+                    const e_i = y_data[i] - y_pred;
+                    
+                    y_hat.push(y_pred);
+                    residuos.push(e_i);
+                    
+                    SCE += Math.pow(e_i, 2); // [cite: 10]
+                    SCR += Math.pow(y_pred - y_bar, 2);
+                }
+
+                const SCT = Syy; // [cite: 9]
+                const R_cuadrado_anova = SCR / SCT; // [cite: 3]
+                
+                const df_err = n - 2;
+                const sigma_cuadrado = SCE / df_err; // [cite: 5] (s²)
+                const s = Math.sqrt(sigma_cuadrado);
+
+                let resultsHTML = `
+                    <h2>Resultados de la Regresión Lineal</h2>
+                    <pre>
+Modelo de Regresión: Ŷ = ${beta_0.toFixed(4)} + ${beta_1.toFixed(4)} * X
+--------------------------------------------------
+Estadísticos Básicos:
+N (cantidad de datos): ${n}
+Media de X (x̄):        ${x_bar.toFixed(4)}
+Media de Y (ȳ):        ${y_bar.toFixed(4)}
+
+Sumas de Cuadrados:
+Sxx: ${Sxx.toFixed(4)}
+Syy (SCT): ${Syy.toFixed(4)}
+Sxy: ${Sxy.toFixed(4)}
+
+Coeficientes:
+β₀ (Intercepto):   ${beta_0.toFixed(4)}
+β₁ (Pendiente):    ${beta_1.toFixed(4)}
+
+Bondad de Ajuste:
+Coef. Correlación (r): ${r_xy.toFixed(4)}
+Coef. Determinación (R²): ${R_cuadrado_calc.toFixed(4)}
+Error Estándar (s):       ${s.toFixed(4)}
+                    </pre>
+                `;
+
+                // --- 2. Intervalos de Confianza (Fuente 6, 7, 8) ---
+                
+                const gl = n - 2;
+                const t_critico = getTValue(gl, alpha_2_key);
+
+                resultsHTML += `<h2>Intervalos de Confianza al ${confianza}% (α = ${alpha})</h2>`;
+
+                if (t_critico) {
+                    // IC para β₁
+                    const V_beta_1 = sigma_cuadrado / Sxx; // [cite: 3]
+                    const SE_beta_1 = Math.sqrt(V_beta_1);
+                    const margin_error_b1 = t_critico * SE_beta_1;
+                    const b1_lower = beta_1 - margin_error_b1;
+                    const b1_upper = beta_1 + margin_error_b1;
+
+                    // IC para β₀
+                    const V_beta_0 = (sigma_cuadrado * sum_x_sq) / (n * Sxx); // [cite: 5]
+                    const SE_beta_0 = Math.sqrt(V_beta_0);
+                    const margin_error_b0 = t_critico * SE_beta_0;
+                    const b0_lower = beta_0 - margin_error_b0;
+                    const b0_upper = beta_0 + margin_error_b0;
+
+                    resultsHTML += `
+                        <pre>
+Grados de Libertad (n-2): ${gl}
+Valor t-crítico (t_${alpha_2_key}, ${gl}): ${t_critico.toFixed(4)} (de Tabla t-Student)
+
+Intervalo de Confianza para β₁ (Pendiente):
+  V(β₁) = s² / Sxx = ${V_beta_1.toFixed(6)}
+  EE(β₁) = √V(β₁) = ${SE_beta_1.toFixed(4)}
+  Margen de Error = t * EE(β₁) = ${margin_error_b1.toFixed(4)}
+  IC(β₁) = [${b1_lower.toFixed(4)} , ${b1_upper.toFixed(4)}]
+
+Intervalo de Confianza para β₀ (Intercepto):
+  V(β₀) = (s² * Σxᵢ²) / (n * Sxx) = ${V_beta_0.toFixed(6)}
+  EE(β₀) = √V(β₀) = ${SE_beta_0.toFixed(4)}
+  Margen de Error = t * EE(β₀) = ${margin_error_b0.toFixed(4)}
+  IC(β₀) = [${b0_lower.toFixed(4)} , ${b0_upper.toFixed(4)}]
+                        </pre>
+                    `;
+                } else if (gl > 20) {
+                     resultsHTML += `<div class="warning">Cálculo de IC omitido: Los grados de libertad (${gl}) son mayores a 20, que es el límite de la tabla t-Student incorporada.</div>`;
+                } else {
+                    resultsHTML += `<div class="warning">Cálculo de IC omitido: El nivel de significancia α=${alpha} (α/2 = ${alpha_2_key}) no se encuentra en la tabla t-Student provista.</div>`;
+                }
+
+
+                // --- 3. Tabla ANOVA (Fuente 11, 12, 13) ---
+
+                const df_reg = 1;
+                const df_tot = n - 1;
+                const MSR = SCR / df_reg; 
+                const MSE = SCE / df_err; 
+                const F_calc = MSR / MSE; // [cite: 12]
+
+                resultsHTML += `
+                    <h2>Prueba ANOVA</h2>
+                    <p>Prueba la significancia general del modelo (H₀: β₁ = 0 vs H₁: β₁ ≠ 0).</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fuente de Variación (FV)</th>
+                                <th>Suma de Cuadrados (SC)</th>
+                                <th>Grados de Libertad (gl)</th>
+                                <th>Cuadrado Medio (MC)</th>
+                                <th>F Calculado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Regresión</td>
+                                <td>${SCR.toFixed(4)}</td>
+                                <td>${df_reg}</td>
+                                <td>${MSR.toFixed(4)}</td>
+                                <td rowspan="2"><b>${F_calc.toFixed(4)}</b></td>
+                            </tr>
+                            <tr>
+                                <td>Error (Residual)</td>
+                                <td>${SCE.toFixed(4)}</td>
+                                <td>${df_err}</td>
+                                <td>${MSE.toFixed(4)}</td>
+                            </tr>
+                            <tr>
+                                <td>Total</td>
+                                <td>${SCT.toFixed(4)}</td>
+                                <td>${df_tot}</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="nota">
+                        <b>Interpretación ANOVA:</b>
+                        <br>Se debe comparar el <b>F Calculado (${F_calc.toFixed(4)})</b> con un valor crítico <b>F(1-α, 1, n-2)</b>.
+                        <br>El PDF proporciona una tabla F para <b>α=0.05</b>[cite: 219]. Si F Calculado > F Crítico(α=0.05), se rechaza H₀ con ese nivel de significancia.
+                    </div>
+                `;
+
+                // --- 4. Test Durbin-Watson (Fuente 25, 26, 27) ---
+
+                let sum_diff_e_sq = 0;
+                for (let i = 1; i < n; i++) {
+                    sum_diff_e_sq += Math.pow(residuos[i] - residuos[i-1], 2);
+                }
+                const D_calc = sum_diff_e_sq / SCE; // [cite: 26]
+
+                const dw_values = getDWValues(n);
+                let dw_conclusion = "";
+                let dw_criticals = `(Valores críticos no encontrados para n=${n} en la tabla provista).`;
+
+                if (dw_values) {
+                    const { dL, dU } = dw_values;
+                    dw_criticals = `(Valores críticos para n=${n}, k'=1: dL=${dL}, dU=${dU})`;
+
+                    if (D_calc < dL) { // [cite: 17]
+                        dw_conclusion = `<b>Conclusión: Se rechaza H₀.</b> Existe evidencia de autocorrelación positiva.`;
+                    } else if (D_calc > dU) { // [cite: 26]
+                        dw_conclusion = `<b>Conclusión: No se rechaza H₀.</b> No hay evidencia de autocorrelación.`;
+                    } else { // [cite: 27]
+                        dw_conclusion = `<b>Conclusión: Prueba no concluyente.</b>`;
+                    }
+                } else {
+                     dw_conclusion = `<div class="warning">No se pudo concluir la prueba. El valor de n=${n} está fuera del rango de la tabla Durbin-Watson provista (15 a 100).</div>`;
+                }
+
+
+                resultsHTML += `
+                    <h2>Prueba Durbin-Watson (Autocorrelación, α=0.05)</h2>
+                    <p>Prueba la autocorrelación de primer orden en los residuos (H₀: ρ = 0).</p>
+                    <pre>
+Estadístico D Calculado: <b>${D_calc.toFixed(4)}</b>
+${dw_criticals}
+                    </pre>
+                    <div class="nota">
+                        <b>Interpretación Durbin-Watson:</b>
+                        <br>Reglas (para H₁: ρ > 0):
+                        <br>  - Si D < dL (${dw_values ? dw_values.dL : 'N/A'}): Se rechaza H₀ [cite: 17]
+                        <br>  - Si D > dU (${dw_values ? dw_values.dU : 'N/A'}): No se rechaza H₀ [cite: 26]
+                        <br>  - Si dL ≤ D ≤ dU: Test no concluyente [cite: 27]
+                        <br>
+                        <br><b>${dw_conclusion}</b>
+                    </div>
+                `;
+
+                // --- 5. Test Kolmogorov-Smirnov (Normalidad de Residuos) ---
+                
+                const z_residuos = residuos.map(e => e / s).sort((a, b) => a - b);
+                
+                let Dn_max = 0;
+                let ks_table = `
+                    <h3>Tabla de Desarrollo Kolmogorov-Smirnov</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>i</th>
+                                <th>Residuo Estandarizado (Zᵢ)</th>
+                                <th>F Teórica Fₛ(Zᵢ) = Φ(Zᵢ)</th>
+                                <th>F Empírica Sₙ(i/n)</th>
+                                <th>|Fₛ(Zᵢ) - Sₙ(i/n)|</th>
+                                <th>|Fₛ(Zᵢ) - Sₙ((i-1)/n)|</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                for (let i = 0; i < n; i++) {
+                    const z_i = z_residuos[i];
+                    const Fs_zi = normalCDF(z_i); 
+                    const Sn_i = (i + 1) / n;      
+                    const Sn_i_1 = i / n;          
+
+                    const diff1 = Math.abs(Fs_zi - Sn_i);
+                    const diff2 = Math.abs(Fs_zi - Sn_i_1);
+                    
+                    if (diff1 > Dn_max) Dn_max = diff1;
+                    if (diff2 > Dn_max) Dn_max = diff2;
+                    
+                    ks_table += `
+                        <tr>
+                            <td>${i+1}</td>
+                            <td>${z_i.toFixed(4)}</td>
+                            <td>${Fs_zi.toFixed(4)}</td>
+                            <td>${Sn_i.toFixed(4)}</td>
+                            <td>${diff1.toFixed(4)}</td>
+                            <td>${diff2.toFixed(4)}</td>
+                        </tr>
+                    `;
+                }
+                
+                ks_table += `</tbody></table>`;
+
+                const ks_crit_table = { 10: 0.41, 15: 0.34, 20: 0.29 }; // [cite: 30]
+                
+                let Dn_critico = 1.36 / Math.sqrt(n); // Para n > 50 [cite: 30]
+                if (n <= 10) Dn_critico = 0.41;
+                else if (n <= 15) Dn_critico = 0.34;
+                else if (n <= 20) Dn_critico = 0.29;
+                else if (n <= 50) Dn_critico = 1.36 / Math.sqrt(n); 
+                
+                const conclusion_ks = (Dn_max > Dn_critico) ? 
+                    `<b>Se rechaza H₀</b> (Los residuos NO siguen una distribución normal).` : // [cite: 29]
+                    `<b>No se rechaza H₀</b> (Los residuos parecen seguir una distribución normal).`;
+
+                resultsHTML += `
+                    <h2>Prueba Kolmogorov-Smirnov (Normalidad, α=0.05)</h2>
+                    <p>Prueba si los residuos estandarizados siguen una distribución normal (H₀: F(x) = Fₛ(x))[cite: 19].</p>
+                    <pre>
+Estadístico Dₙ Calculado: <b>${Dn_max.toFixed(4)}</b>  (Dₙ = max|Fₛ(x) - Sₙ(x)|) [cite: 18]
+Valor Crítico Dₙ(α=0.05) para n=${n}: <b>${Dn_critico.toFixed(4)}</b> (Basado en tabla [cite: 30])
+                    </pre>
+                    <div class="nota">
+                        <b>Interpretación K-S (α=0.05):</b>
+                        <br>Comparamos Dₙ Calculado (${Dn_max.toFixed(4)}) con Dₙ Crítico (${Dn_critico.toFixed(4)}).
+                        <br>Si Dₙ > Dₙ(α), se rechaza H₀[cite: 29].
+                        <br>
+                        <br><b>${conclusion_ks}</b>
+                    </div>
+                    ${ks_table}
+                `;
+
+                output.innerHTML = resultsHTML;
+
+            } catch (e) {
+                output.innerHTML = `<div class="error">Error: ${e.message}</div>`;
             }
-
-            // Verificar estado estacionario
-            if (model === 'mm1' && lambda >= mu) {
-                showError('El sistema NO está en estado estacionario. Debe cumplirse: λ < μ');
-                return;
-            }
-
-            if (model === 'mmk' && lambda >= k * mu) {
-                showError(`El sistema NO está en estado estacionario. Debe cumplirse: λ < k·μ (${lambda} < ${k * mu})`);
-                return;
-            }
-
-            // Calcular según modelo
-            let results;
-            if (model === 'mm1') {
-                results = calculateMM1(lambda, mu, n, nMax);
-            } else {
-                results = calculateMMk(k, lambda, mu, n, nMax);
-            }
-
-            // Mostrar advertencia si ρ está cerca del límite
-            if (results.rho > 0.9) {
-                showWarning('⚠️ Advertencia: ρ > 0.9 indica un sistema muy congestionado. Los tiempos de espera serán largos.');
-            }
-
-            // Mostrar resultados
-            displayResults(results, model, k, n, nMax);
-        }
-
-        function displayResults(results, model, k, n, nMax) {
-            const resultsDiv = document.getElementById('results');
-            
-            const modelName = model === 'mm1' ? 'M/M/1' : `M/M/${k}`;
-            
-            resultsDiv.innerHTML = `
-                <div style="background: #667eea; color: white; padding: 10px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
-                    <strong>Modelo: ${modelName}</strong>
-                </div>
-
-                <div class="result-item">
-                    <span class="result-label">ρ (Utilización del servidor)</span>
-                    <span class="result-value">${results.rho.toFixed(4)}</span>
-                </div>
-
-                <div class="result-item">
-                    <span class="result-label">P₀ (Sistema vacío)</span>
-                    <span class="result-value">${results.P0.toFixed(4)}</span>
-                </div>
-
-                <div class="result-item">
-                    <span class="result-label">P(${n}) (Exactamente ${n} clientes)</span>
-                    <span class="result-value">${results.Pn.toFixed(6)}</span>
-                </div>
-
-                <div class="result-item">
-                    <span class="result-label">P(≤${nMax}) (A lo más ${nMax} clientes)</span>
-                    <span class="result-value">${results.PnMax.toFixed(6)}</span>
-                </div>
-
-                <div class="result-item">
-                    <span class="result-label">Lₛ (Clientes en el sistema)</span>
-                    <span class="result-value">${results.Ls.toFixed(4)}</span>
-                </div>
-
-                <div class="result-item">
-                    <span class="result-label">Lq (Clientes en la cola)</span>
-                    <span class="result-value">${results.Lq.toFixed(4)}</span>
-                </div>
-
-                <div class="result-item">
-                    <span class="result-label">Wₛ (Tiempo en el sistema)</span>
-                    <span class="result-value">${results.Ws.toFixed(4)}</span>
-                </div>
-
-                <div class="result-item">
-                    <span class="result-label">Wq (Tiempo en la cola)</span>
-                    <span class="result-value">${results.Wq.toFixed(4)}</span>
-                </div>
-
-                <div class="result-item">
-                    <span class="result-label">Pw (Prob. de esperar)</span>
-                    <span class="result-value">${results.Pw.toFixed(4)}</span>
-                </div>
-
-                <div style="margin-top: 20px; padding: 15px; background: #e8f5e9; border-radius: 8px;">
-                    <strong style="color: #2e7d32;">Interpretación:</strong><br>
-                    • En promedio hay ${results.Ls.toFixed(2)} clientes en el sistema<br>
-                    • En promedio hay ${results.Lq.toFixed(2)} clientes esperando<br>
-                    • Tiempo promedio en el sistema: ${results.Ws.toFixed(2)} unidades<br>
-                    • Tiempo promedio de espera: ${results.Wq.toFixed(2)} unidades<br>
-                    • Probabilidad de esperar: ${(results.Pw * 100).toFixed(2)}%<br>
-                    • Utilización del servidor: ${(results.rho * 100).toFixed(2)}%
-                </div>
-            `;
-        }
-
-        function showError(message) {
-            const errorDiv = document.getElementById('errorMsg');
-            errorDiv.textContent = '❌ ' + message;
-            errorDiv.style.display = 'block';
-            document.getElementById('results').innerHTML = `
-                <p style="text-align: center; color: #ff4757; padding: 50px 20px;">
-                    ${message}
-                </p>
-            `;
-        }
-
-        function showWarning(message) {
-            const warningDiv = document.getElementById('warningMsg');
-            warningDiv.textContent = message;
-            warningDiv.style.display = 'block';
         }
     </script>
 </body>
