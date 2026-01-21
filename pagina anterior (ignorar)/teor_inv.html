@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Teoría de Inventarios</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        h1, h2 {
+            color: #0056b3;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+        input[type="number"], select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box; /* Importante para que el padding no afecte el ancho */
+            font-size: 1em;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin-top: 20px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #results {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: #eef7ff;
+            border: 1px solid #b3d7ff;
+            border-radius: 5px;
+            white-space: pre-wrap; /* Mantiene los saltos de línea */
+            font-family: "Courier New", Courier, monospace;
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+        .input-group {
+            padding: 10px;
+            border: 1px dashed #ddd;
+            margin-top: 15px;
+            border-radius: 5px;
+        }
+        .hidden {
+            display: none;
+        }
+        .note {
+            font-size: 0.85em;
+            color: #555;
+            margin-top: 5px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Calculadora de Teoría de Inventarios 📦</h1>
+
+        <form id="inventoryForm">
+            <label for="modelType">Seleccione el Modelo a Calcular:</label>
+            <select id="modelType" onchange="showInputs()">
+                <option value="">-- Elija una opción --</option>
+                <option value="eoq">1. Modelo EOQ (Clásico)</option>
+                <option value="op">2. Modelo con Órdenes Pendientes (Backorders)</option>
+                <option value="poq">3. Modelo de Lote de Producción (POQ)</option>
+                <option value="prob_r">4. Probabilista - Calcular R (con 'z')</option>
+                <option value="prob_slm1">5. Probabilista - Ayudante SLM1 (Calcular L(z))</option>
+            </select>
+
+            <div id="baseInputs" class="input-group hidden">
+                <label for="D">Demanda (D) (anual):</label>
+                <input type="number" id="D" placeholder="Ej: 10000">
+
+                <label for="Co">Costo de Ordenar (C_o):</label>
+                <input type="number" id="Co" placeholder="Ej: 50">
+
+                <label for="Ch">Costo de Mantener (C_h) (anual por unidad):</label>
+                <input type="number" id="Ch" placeholder="Ej: 5">
+            </div>
+
+            <div id="eoqInputs" class="input-group hidden">
+                <label for="lt_eoq">Lead Time (lt) (en días, semanas, etc.):</label>
+                <input type="number" id="lt_eoq" placeholder="Ej: 2">
+
+                <label for="d_eoq">Tasa de Demanda (d) (diaria, semanal, etc.):</label>
+                <input type="number" id="d_eoq" placeholder="Ej: 40">
+                <p class="note">La unidad de 'lt' y 'd' debe ser consistente (ej: días y unidades/día).</p>
+            </div>
+            
+            <div id="opInputs" class="input-group hidden">
+                <label for="Cs">Costo de Órden Pendiente (C_s) (anual por unidad):</label>
+                <input type="number" id="Cs" placeholder="Ej: 15">
+            </div>
+            
+            <div id="poqInputs" class="input-group hidden">
+                <label for="p_poq">Tasa de Producción (p) (anual):</label>
+                <input type="number" id="p_poq" placeholder="Ej: 25000">
+
+                <label for="d_poq">Tasa de Demanda (d) (anual):</label>
+                <input type="number" id="d_poq" placeholder="Ej: 10000">
+                <p class="note"><b>Importante:</b> Para este cálculo se usa 'd' (Tasa Demanda Anual) y se ignora 'D' (Demanda) del grupo base.</p>
+            </div>
+
+            <div id="probRInputs" class="input-group hidden">
+                <label for="mu_D">Media de Demanda (μ_D) (diaria, semanal, etc.):</label>
+                <input type="number" id="mu_D" placeholder="Ej: 100">
+
+                <label for="sigma_D">Desv. Estándar de Demanda (σ_D) (misma unidad):</label>
+                <input type="number" id="sigma_D" placeholder="Ej: 15">
+
+                <label for="lt_prob">Lead Time (lt) (en días, semanas, etc.):</label>
+                <input type="number" id="lt_prob" placeholder="Ej: 5">
+                <p class="note">Las unidades de μ_D, σ_D y lt deben ser consistentes.</p>
+
+                <label for="z">Valor Z (buscado en tabla Normal Estándar):</label>
+                <input type="number" id="z" placeholder="Ej: 1.645 para 95% de servicio">
+                <p class="note">Para SLM2, busque z para P(Z ≤ z) = (Nivel de Servicio).<br>
+                   Para SLM1, calcule L(z) con el ayudante, busque 'z' en la tabla L(z) e ingréselo aquí.</p>
+            </div>
+
+            <div id="probSLM1Inputs" class="input-group hidden">
+                <label for="q_slm1">q* (Cantidad Óptima de Pedido EOQ):</label>
+                <input type="number" id="q_slm1" placeholder="Ej: 327">
+
+                <label for="slm1">Nivel de Servicio SLM1 (como decimal):</label>
+                <input type="number" id="slm1" placeholder="Ej: 0.99 (para 99%)">
+                
+                <label for="sigma_lt_slm1">Desv. Estándar durante Lead Time (σ_lt):</label>
+                <input type="number" id="sigma_lt_slm1" placeholder="Ej: 11.55">
+                <p class="note">Calcule σ_lt = σ_D * sqrt(lt) o ingréselo si ya lo tiene.</p>
+            </div>
+
+            <button type="button" onclick="calculate()">Calcular</button>
+        </form>
+
+        <div id="results" class="hidden"></div>
+    </div>
+
+    <script>
+        function showInputs() {
+            // Ocultar todos los grupos primero
+            const groups = document.querySelectorAll('.input-group');
+            groups.forEach(group => group.classList.add('hidden'));
+
+            const model = document.getElementById('modelType').value;
+
+            if (model === 'eoq') {
+                document.getElementById('baseInputs').classList.remove('hidden');
+                document.getElementById('eoqInputs').classList.remove('hidden');
+            } else if (model === 'op') {
+                document.getElementById('baseInputs').classList.remove('hidden');
+                document.getElementById('opInputs').classList.remove('hidden');
+            } else if (model === 'poq') {
+                // POQ necesita Co y Ch de baseInputs, y p, d de poqInputs
+                document.getElementById('baseInputs').classList.remove('hidden');
+                document.getElementById('poqInputs').classList.remove('hidden');
+            } else if (model === 'prob_r') {
+                document.getElementById('probRInputs').classList.remove('hidden');
+            } else if (model === 'prob_slm1') {
+                document.getElementById('probSLM1Inputs').classList.remove('hidden');
+            }
+        }
+
+        function getNum(id) {
+            const value = document.getElementById(id).value;
+            if (value === "") return NaN;
+            return parseFloat(value);
+        }
+
+        function calculate() {
+            const model = document.getElementById('modelType').value;
+            let resultsDiv = document.getElementById('results');
+            resultsDiv.classList.remove('hidden');
+            let res = '';
+
+            try {
+                if (model === 'eoq') {
+                    res = calcEOQ();
+                } else if (model === 'op') {
+                    res = calcOP();
+                } else if (model === 'poq') {
+                    res = calcPOQ();
+                } else if (model === 'prob_r') {
+                    res = calcProbR();
+                } else if (model === 'prob_slm1') {
+                    res = calcSLM1();
+                } else {
+                    res = 'Por favor, seleccione un modelo válido.';
+                }
+            } catch (e) {
+                res = `Error en el cálculo: ${e.message}\n\nAsegúrese de que todos los campos para el modelo seleccionado estén completos y sean números válidos.`;
+            }
+            
+            resultsDiv.textContent = res;
+        }
+
+        // --- FUNCIONES DE CÁLCULO ---
+
+        function calcEOQ() {
+            const D = getNum('D');
+            const Co = getNum('Co');
+            const Ch = getNum('Ch');
+            const lt = getNum('lt_eoq');
+            const d = getNum('d_eoq');
+
+            if (isNaN(D) || isNaN(Co) || isNaN(Ch) || isNaN(lt) || isNaN(d)) {
+                throw new Error("Datos de EOQ incompletos.");
+            }
+
+            // q* = sqrt((2 * D * Co) / Ch) [cite: 2]
+            const q_star = Math.sqrt((2 * D * Co) / Ch);
+            
+            // NMI = q* / 2 [cite: 3]
+            const NMI = q_star / 2;
+            
+            // R = ceil(lt * d) [cite: 3]
+            const R = Math.ceil(lt * d);
+
+            return `--- Resultados Modelo EOQ ---
+Cantidad Óptima (q*): ${q_star.toFixed(4)} unidades
+Nivel Medio Inventario (NMI): ${NMI.toFixed(4)} unidades
+Punto de Reorden (R): ${R.toFixed(0)} unidades`;
+        }
+
+        function calcOP() {
+            const D = getNum('D');
+            const Co = getNum('Co');
+            const Ch = getNum('Ch');
+            const Cs = getNum('Cs');
+
+            if (isNaN(D) || isNaN(Co) || isNaN(Ch) || isNaN(Cs)) {
+                throw new Error("Datos de Órdenes Pendientes incompletos.");
+            }
+
+            const q_eoq = Math.sqrt((2 * D * Co) / Ch);
+            
+            // q_OP* = sqrt((2 * D * Co) / Ch) * sqrt((Ch + Cs) / Cs) [cite: 4]
+            const q_op_star = q_eoq * Math.sqrt((Ch + Cs) / Cs);
+            
+            // S_OP* = (q_OP* * Ch) / (Ch + Cs) [cite: 5]
+            const S_op_star = (q_op_star * Ch) / (Ch + Cs);
+            
+            // NMI_OP = (q - S)^2 / (2 * q) [cite: 5]
+            const NMI_op = Math.pow((q_op_star - S_op_star), 2) / (2 * q_op_star);
+
+            return `--- Resultados Modelo con Órdenes Pendientes ---
+Cantidad Óptima (q_op*): ${q_op_star.toFixed(4)} unidades
+Nivel Máx. Pendiente (S*): ${S_op_star.toFixed(4)} unidades
+Nivel Medio Inventario (NMI_op): ${NMI_op.toFixed(4)} unidades`;
+        }
+
+        function calcPOQ() {
+            // D de baseInputs es ignorado. Usamos d_poq como la demanda anual 'd'.
+            const Co = getNum('Co');
+            const Ch = getNum('Ch');
+            const p = getNum('p_poq'); // Tasa prod. anual
+            const d_anual = getNum('d_poq'); // Tasa demanda anual
+
+            if (isNaN(Co) || isNaN(Ch) || isNaN(p) || isNaN(d_anual)) {
+                throw new Error("Datos de Lote de Producción incompletos.");
+            }
+            if (p <= d_anual) {
+                throw new Error("La Tasa de Producción (p) debe ser mayor que la Tasa de Demanda (d).");
+            }
+            
+            // Usamos la fórmula de la diapositiva 86: q_p* = sqrt((2 * d * Co * p) / ((p - d) * Ch))
+            const numerator = 2 * d_anual * Co * p;
+            const denominator = (p - d_anual) * Ch;
+            const q_p_star = Math.sqrt(numerator / denominator);
+            
+            // Nivel Máximo de Inventario (M) [cite: 827]
+            const M = (q_p_star / p) * (p - d_anual);
+            
+            // Nivel Medio de Inventario [cite: 836]
+            const NMI_poq = M / 2;
+
+            return `--- Resultados Modelo Lote de Producción ---
+(Usando d=${d_anual}, p=${p}, Co=${Co}, Ch=${Ch})
+Lote Óptimo (q_p*): ${q_p_star.toFixed(4)} unidades
+Inventario Máximo (M): ${M.toFixed(4)} unidades
+Nivel Medio Inventario (NMI): ${NMI_poq.toFixed(4)} unidades`;
+        }
+
+
+        function calcProbR() {
+            const mu_D = getNum('mu_D');
+            const sigma_D = getNum('sigma_D');
+            const lt = getNum('lt_prob');
+            const z = getNum('z');
+
+            if (isNaN(mu_D) || isNaN(sigma_D) || isNaN(lt) || isNaN(z)) {
+                throw new Error("Datos de Modelo Probabilista incompletos.");
+            }
+
+            // mu_lt = mu_D * lt [cite: 8]
+            const mu_lt = mu_D * lt;
+            
+            // sigma_lt = sigma_D * sqrt(lt) [cite: 8]
+            const sigma_lt = sigma_D * Math.sqrt(lt);
+            
+            // R = mu_lt + z * sigma_lt (re-ordenando [cite: 10])
+            const R = mu_lt + (z * sigma_lt);
+            const SS = z * sigma_lt;
+
+            return `--- Resultados Modelo Probabilista (Cálculo de R) ---
+Media de Demanda en Lead Time (μ_lt): ${mu_lt.toFixed(4)}
+Desv. Est. en Lead Time (σ_lt): ${sigma_lt.toFixed(4)}
+Stock de Seguridad (SS): ${SS.toFixed(4)} unidades
+Punto de Reorden (R): ${R.toFixed(4)} unidades`;
+        }
+        
+        function calcSLM1() {
+            const q_star = getNum('q_slm1');
+            const slm1 = getNum('slm1');
+            const sigma_lt = getNum('sigma_lt_slm1');
+            
+            if (isNaN(q_star) || isNaN(slm1) || isNaN(sigma_lt)) {
+                throw new Error("Datos de Ayudante SLM1 incompletos.");
+            }
+            if (slm1 <= 0 || slm1 >= 1) {
+                throw new Error("SLM1 debe ser un decimal entre 0 y 1 (ej: 0.99).");
+            }
+
+            // E[S] = (1 - SLM1) * q* (re-ordenando [cite: 6])
+            const E_S = (1 - slm1) * q_star;
+            
+            // E[S] = sigma_lt * L(z) => L(z) = E[S] / sigma_lt [cite: 9]
+            const L_z = E_S / sigma_lt;
+            
+            return `--- Resultados Ayudante SLM1 ---
+Faltante Esperado por Ciclo (E[S]): ${E_S.toFixed(4)} unidades
+Valor L(z) a buscar: ${L_z.toFixed(6)}
+
+Instrucción:
+1. Busque el valor ${L_z.toFixed(6)} en la tabla 'Standard Normal Loss Function'.
+2. Encuentre el valor 'z' correspondiente.
+3. Use ese 'z' en el "Modelo 4. Probabilista - Calcular R" para encontrar el Punto de Reorden (R).`;
+        }
+
+        // Inicializar la vista al cargar la página
+        window.onload = showInputs;
+    </script>
+</body>
+</html>

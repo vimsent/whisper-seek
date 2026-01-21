@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Regresión Lineal (Modos)</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        main {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        h1, h2, h3 {
+            color: #005a9c;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 8px;
+        }
+        h3 {
+            border-bottom: 1px solid #eee;
+            color: #333;
+        }
+        .input-mode-selector {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #e9f7f0;
+            border: 1px solid #d0eccf;
+            border-radius: 8px;
+        }
+        .input-mode-selector label {
+            margin-right: 15px;
+            font-weight: bold;
+            color: #006400;
+        }
+        .input-mode-selector input[type="radio"] {
+            margin-right: 5px;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        textarea, input[type="number"] {
+            width: 100%;
+            height: auto;
+            min-height: 40px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            box-sizing: border-box; 
+            font-size: 1em;
+        }
+        textarea {
+             height: 150px;
+        }
+        button {
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #resultados {
+            grid-column: 1 / -1;
+            margin-top: 20px;
+        }
+        pre {
+            background-color: #eee;
+            padding: 15px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: "Courier New", Courier, monospace;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            margin-bottom: 25px; 
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .error, .warning {
+            color: #D8000C;
+            background-color: #FFD2D2;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .warning {
+            color: #9F6000;
+            background-color: #FEEFB3;
+        }
+        .nota {
+            font-size: 0.9em;
+            color: #555;
+            background-color: #fffbe6;
+            border: 1px solid #ffe58f;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+        .config-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .config-item label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .config-item select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>Calculadora de Regresión Lineal y Pruebas</h1>
+        
+        <div class="input-mode-selector">
+            <label>Seleccionar Modo de Entrada:</label>
+            <input type="radio" id="mode-xy" name="inputMode" value="xy" checked onchange="toggleInputMode()">
+            <label for="mode-xy">Datos X e Y</label>
+            <input type="radio" id="mode-summary" name="inputMode" value="summary" onchange="toggleInputMode()">
+            <label for="mode-summary">Datos Resumidos</label>
+        </div>
+
+        <div id="input-xy" class="container">
+            <div>
+                <label for="data-x"><b>Datos de X (separados por línea):</b></label>
+                <textarea id="data-x" placeholder="Ej:
+1.1
+2.3
+3.5
+4.2"></textarea>
+            </div>
+            <div>
+                <label for="data-y"><b>Datos de Y (separados por línea):</b></label>
+                <textarea id="data-y" placeholder="Ej:
+5.0
+7.1
+9.3
+11.0"></textarea>
+            </div>
+        </div>
+
+        <div id="input-summary" class="container" style="display: none;">
+            <div>
+                <label for="summary-N"><b>N:</b></label>
+                <input type="number" id="summary-N" placeholder="Ej: 9">
+            </div>
+            <div>
+                <label for="summary-X-bar"><b>X̄ (Media de X):</b></label>
+                <input type="number" id="summary-X-bar" placeholder="Ej: ...">
+            </div>
+            <div>
+                <label for="summary-Y-bar"><b>Ȳ (Media de Y):</b></label>
+                <input type="number" id="summary-Y-bar" placeholder="Ej: ...">
+            </div>
+            <div>
+                <label for="summary-Sxx"><b>Sxx:</b></label>
+                <input type="number" id="summary-Sxx" placeholder="Ej: ...">
+            </div>
+            <div>
+                <label for="summary-Syy"><b>Syy (SCT):</b></label>
+                <input type="number" id="summary-Syy" placeholder="Ej: ...">
+            </div>
+            <div>
+                <label for="summary-Sxy"><b>Sxy:</b></label>
+                <input type="number" id="summary-Sxy" placeholder="Ej: ...">
+            </div>
+            <div class="full-width">
+                <label for="summary-SCE"><b>SCE (Suma Cuadrados Error):</b></label>
+                <input type="number" id="summary-SCE" placeholder="Ej: ...">
+            </div>
+            <div class="full-width">
+                <label for="summary-residuos"><b>Residuos eᵢ (separados por línea):</b></label>
+                <textarea id="summary-residuos" placeholder="Ej:
+-2.83
+-1.99
+-1.81
+-0.63
+-0.60
+-0.57
+0.14
+0.26
+0.47"></textarea>
+            </div>
+        </div>
+
+        <div class="config-item full-width" style="margin-top: 20px;">
+            <label for="alpha">Nivel de Significancia (α)</label>
+            <select id="alpha">
+                <option value="0.20">0.20 (80% Confianza)</option>
+                <option value="0.10">0.10 (90% Confianza)</option>
+                <option value="0.05" selected>0.05 (95% Confianza)</option>
+                <option value="0.02">0.02 (98% Confianza)</option>
+                <option value="0.01">0.01 (99% Confianza)</option>
+            </select>
+        </div>
+
+        <button class="full-width" onclick="calcular()" style="margin-top: 20px;">Calcular</button>
+        
+        <div id="resultados" class="full-width"></div>
+    </main>
+
+    <script>
+        // --- Tablas de Valores Críticos (del PDF) ---
+
+        const tTable = {
+            // gl: { "0.1": val, "0.05": val, "0.025": val, "0.01": val, "0.005": val }
+            1:  { "0.1": 3.0777, "0.05": 6.3137, "0.025": 12.7062, "0.01": 31.8210, "0.005": 63.6559 },
+            2:  { "0.1": 1.8856, "0.05": 2.9200, "0.025": 4.3027, "0.01": 6.9645, "0.005": 9.9250 },
+            3:  { "0.1": 1.6377, "0.05": 2.3534, "0.025": 3.1824, "0.01": 4.5407, "0.005": 5.8408 },
+            4:  { "0.1": 1.5332, "0.05": 2.1318, "0.025": 2.7765, "0.01": 3.7469, "0.005": 4.6041 },
+            5:  { "0.1": 1.4759, "0.05": 2.0150, "0.025": 2.5706, "0.01": 3.3649, "0.005": 4.0321 },
+            6:  { "0.1": 1.4398, "0.05": 1.9432, "0.025": 2.4469, "0.01": 3.1427, "0.005": 3.7074 },
+            7:  { "0.1": 1.4149, "0.05": 1.8946, "0.025": 2.3646, "0.01": 2.9979, "0.005": 3.4995 },
+            8:  { "0.1": 1.3968, "0.05": 1.8595, "0.025": 2.3060, "0.01": 2.8965, "0.005": 3.3554 },
+            9:  { "0.1": 1.3830, "0.05": 1.8331, "0.025": 2.2622, "0.01": 2.8214, "0.005": 3.2498 },
+            10: { "0.1": 1.3722, "0.05": 1.8125, "0.025": 2.2281, "0.01": 2.7638, "0.005": 3.1693 },
+            11: { "0.1": 1.3634, "0.05": 1.7959, "0.025": 2.2010, "0.01": 2.7181, "0.005": 3.1058 },
+            12: { "0.1": 1.3562, "0.05": 1.7823, "0.025": 2.1788, "0.01": 2.6810, "0.005": 3.0545 },
+            13: { "0.1": 1.3502, "0.05": 1.7709, "0.025": 2.1604, "0.01": 2.6503, "0.005": 3.0123 },
+            14: { "0.1": 1.3450, "0.05": 1.7613, "0.025": 2.1448, "0.01": 2.6245, "0.005": 2.9768 },
+            15: { "0.1": 1.3406, "0.05": 1.7531, "0.025": 2.1315, "0.01": 2.6025, "0.005": 2.9467 },
+            16: { "0.1": 1.3368, "0.05": 1.7459, "0.025": 2.1199, "0.01": 2.5835, "0.005": 2.9208 },
+            17: { "0.1": 1.3334, "0.05": 1.7396, "0.025": 2.1098, "0.01": 2.5669, "0.005": 2.8982 },
+            18: { "0.1": 1.3304, "0.05": 1.7341, "0.025": 2.1009, "0.01": 2.5524, "0.005": 2.8784 },
+            19: { "0.1": 1.3277, "0.05": 1.7291, "0.025": 2.0930, "0.01": 2.5395, "0.005": 2.8609 },
+            20: { "0.1": 1.3253, "0.05": 1.7247, "0.025": 2.0860, "0.01": 2.5280, "0.005": 2.8453 }
+        };
+
+        const dwTable_k1 = {
+            15: { dL: 1.077, dU: 1.361 }, 16: { dL: 1.106, dU: 1.371 }, 17: { dL: 1.133, dU: 1.381 }, 18: { dL: 1.158, dU: 1.391 }, 19: { dL: 1.180, dU: 1.401 },
+            20: { dL: 1.201, dU: 1.411 }, 21: { dL: 1.221, dU: 1.420 }, 22: { dL: 1.239, dU: 1.429 }, 23: { dL: 1.257, dU: 1.437 }, 24: { dL: 1.273, dU: 1.446 },
+            25: { dL: 1.288, dU: 1.454 }, 26: { dL: 1.302, dU: 1.461 }, 27: { dL: 1.316, dU: 1.469 }, 28: { dL: 1.328, dU: 1.476 }, 29: { dL: 1.341, dU: 1.483 },
+            30: { dL: 1.352, dU: 1.489 }, 31: { dL: 1.363, dU: 1.496 }, 32: { dL: 1.373, dU: 1.502 }, 33: { dL: 1.383, dU: 1.508 }, 34: { dL: 1.393, dU: 1.514 },
+            35: { dL: 1.402, dU: 1.519 }, 36: { dL: 1.411, dU: 1.525 }, 37: { dL: 1.419, dU: 1.530 }, 38: { dL: 1.427, dU: 1.535 }, 39: { dL: 1.435, dU: 1.540 },
+            40: { dL: 1.442, dU: 1.544 }, 45: { dL: 1.475, dU: 1.566 }, 50: { dL: 1.503, dU: 1.585 }, 55: { dL: 1.528, dU: 1.601 }, 60: { dL: 1.549, dU: 1.616 },
+            65: { dL: 1.567, dU: 1.629 }, 70: { dL: 1.583, dU: 1.641 }, 75: { dL: 1.598, dU: 1.652 }, 80: { dL: 1.611, dU: 1.662 }, 85: { dL: 1.624, dU: 1.671 },
+            90: { dL: 1.635, dU: 1.679 }, 95: { dL: 1.645, dU: 1.687 }, 100: { dL: 1.654, dU: 1.694 }
+        };
+
+        // --- Funciones Auxiliares de Estadística ---
+
+        function parseInput(text) {
+            return text.trim().split(/[\s,]+/).filter(Boolean).map(Number);
+        }
+
+        function sum(arr) {
+            return arr.reduce((a, b) => a + b, 0);
+        }
+
+        function mean(arr) {
+            return sum(arr) / arr.length;
+        }
+
+        function normalCDF(z) {
+            const p = 0.2316419, b1 = 0.319381530, b2 = -0.356563782;
+            const b3 = 1.781477937, b4 = -1.821255978, b5 = 1.330274429;
+            const t = 1 / (1 + p * Math.abs(z));
+            const phi = (1 / Math.sqrt(2 * Math.PI)) * Math.exp(-0.5 * z * z);
+            const P = 1 - phi * (b1 * t + b2 * Math.pow(t, 2) + b3 * Math.pow(t, 3) + b4 * Math.pow(t, 4) + b5 * Math.pow(t, 5));
+            return z > 0 ? P : 1 - P;
+        }
+
+        function getTValue(gl, alpha_2_key) {
+            if (gl <= 20) {
+                if (tTable[gl] && tTable[gl][alpha_2_key]) {
+                    return tTable[gl][alpha_2_key];
+                }
+                return null; 
+            } else {
+                return null; 
+            }
+        }
+        
+        function getDWValues(n) {
+            if (dwTable_k1[n]) {
+                return dwTable_k1[n];
+            }
+            let closest_n = 0;
+            for (const key in dwTable_k1) {
+                const n_key = parseInt(key);
+                if (n_key <= n && n_key > closest_n) {
+                    closest_n = n_key;
+                }
+            }
+            if (closest_n > 0) {
+                return dwTable_k1[closest_n];
+            }
+            return null; 
+        }
+
+        // --- Toggle Input Mode ---
+        function toggleInputMode() {
+            const modeXY = document.getElementById('input-xy');
+            const modeSummary = document.getElementById('input-summary');
+            const selectedMode = document.querySelector('input[name="inputMode"]:checked').value;
+
+            if (selectedMode === 'xy') {
+                modeXY.style.display = 'grid';
+                modeSummary.style.display = 'none';
+            } else {
+                modeXY.style.display = 'none';
+                modeSummary.style.display = 'grid';
+            }
+        }
+
+        // --- Función Principal de Cálculo ---
+
+        function calcular() {
+            const output = document.getElementById('resultados');
+            output.innerHTML = ''; 
+
+            const alpha = parseFloat(document.getElementById('alpha').value);
+            const confianza = (1 - alpha) * 100;
+            const alpha_2_key = (alpha / 2).toString(); 
+            const selectedMode = document.querySelector('input[name="inputMode"]:checked').value;
+
+            // Variables universales que se llenarán desde cualquier modo
+            let n, x_bar, y_bar, Sxx, Syy, Sxy, SCE, SCR, SCT, residuos;
+            let beta_0, beta_1, R_cuadrado_calc, sum_x_sq;
+
+            try {
+                if (selectedMode === 'xy') {
+                    // --- MODO 1: CALCULAR TODO DESDE X/Y ---
+                    const x_data = parseInput(document.getElementById('data-x').value);
+                    const y_data = parseInput(document.getElementById('data-y').value);
+
+                    if (x_data.length === 0 || y_data.length === 0) {
+                        throw new Error("Por favor, ingresa datos para X e Y en el modo 'Datos X e Y'.");
+                    }
+                    if (x_data.length !== y_data.length) {
+                        throw new Error("La cantidad de datos de X e Y debe ser la misma.");
+                    }
+                    if (x_data.length < 3) {
+                        throw new Error("Se necesitan al menos 3 puntos de datos para los cálculos (n-2 > 0).");
+                    }
+
+                    n = x_data.length;
+                    x_bar = mean(x_data);
+                    y_bar = mean(y_data);
+
+                    Sxx = 0;
+                    Syy = 0;
+                    Sxy = 0;
+                    sum_x_sq = 0; // Necesario para V(b0)
+
+                    for (let i = 0; i < n; i++) {
+                        Sxx += Math.pow(x_data[i] - x_bar, 2); 
+                        Syy += Math.pow(y_data[i] - y_bar, 2); 
+                        Sxy += (x_data[i] - x_bar) * (y_data[i] - y_bar); 
+                        sum_x_sq += Math.pow(x_data[i], 2);
+                    }
+
+                    beta_1 = Sxy / Sxx; 
+                    beta_0 = y_bar - beta_1 * x_bar; 
+                    R_cuadrado_calc = Sxy * Sxy / (Sxx * Syy);
+
+                    residuos = [];
+                    SCE = 0; 
+                    SCR = 0; 
+
+                    for (let i = 0; i < n; i++) {
+                        const y_pred = beta_0 + beta_1 * x_data[i];
+                        const e_i = y_data[i] - y_pred;
+                        residuos.push(e_i);
+                        SCE += Math.pow(e_i, 2); 
+                        SCR += Math.pow(y_pred - y_bar, 2);
+                    }
+                    SCT = Syy;
+
+                } else { 
+                    // --- MODO 2: USAR DATOS RESUMIDOS ---
+                    n = parseFloat(document.getElementById('summary-N').value);
+                    x_bar = parseFloat(document.getElementById('summary-X-bar').value);
+                    y_bar = parseFloat(document.getElementById('summary-Y-bar').value);
+                    Sxx = parseFloat(document.getElementById('summary-Sxx').value);
+                    Syy = parseFloat(document.getElementById('summary-Syy').value); // SCT
+                    Sxy = parseFloat(document.getElementById('summary-Sxy').value); 
+                    SCE = parseFloat(document.getElementById('summary-SCE').value);
+                    residuos = parseInput(document.getElementById('summary-residuos').value);
+
+                    if (isNaN(n) || isNaN(x_bar) || isNaN(y_bar) || isNaN(Sxx) || isNaN(Syy) || isNaN(Sxy) || isNaN(SCE) || residuos.length === 0) {
+                        throw new Error("Por favor, completa todos los campos numéricos y los residuos en el modo 'Datos Resumidos'.");
+                    }
+                    if (n < 3) {
+                        throw new Error("Se necesitan al menos 3 puntos de datos para los cálculos (n-2 > 0).");
+                    }
+                    if (residuos.length !== n) {
+                         throw new Error(`La cantidad de residuos (${residuos.length}) no coincide con N (${n}).`);
+                    }
+
+                    // Derivar valores
+                    beta_1 = Sxy / Sxx; 
+                    beta_0 = y_bar - beta_1 * x_bar; 
+                    R_cuadrado_calc = Sxy * Sxy / (Sxx * Syy);
+                    SCT = Syy; // SCT es Syy
+                    SCR = SCT - SCE; // SCR se deriva de SCT y SCE
+
+                    // Derivar Sum(x_i^2) para el IC de b0
+                    // Sxx = Sum(x_i^2) - N*x_bar^2  =>  Sum(x_i^2) = Sxx + N*x_bar^2
+                    sum_x_sq = Sxx + n * Math.pow(x_bar, 2);
+                }
+
+                // --- CÁLCULOS UNIFICADOS (Ambos modos llegan aquí) ---
+                
+                const gl = n - 2;
+                if (gl <= 0) {
+                    throw new Error("Grados de libertad para el error (n-2) deben ser mayores que 0.");
+                }
+                const sigma_cuadrado = SCE / gl; // (s²)
+                const s = Math.sqrt(sigma_cuadrado);
+
+                let resultsHTML = `
+                    <h2>Resultados de la Regresión Lineal</h2>
+                    <pre>
+Modelo de Regresión: Ŷ = ${beta_0.toFixed(4)} + ${beta_1.toFixed(4)} * X
+--------------------------------------------------
+Estadísticos Básicos:
+N (cantidad de datos): ${n}
+Media de X (x̄):        ${x_bar.toFixed(4)}
+Media de Y (ȳ):        ${y_bar.toFixed(4)}
+
+Sumas de Cuadrados:
+Sxx: ${Sxx.toFixed(4)}
+Syy (SCT): ${SCT.toFixed(4)}
+Sxy: ${Sxy.toFixed(4)}
+SCE: ${SCE.toFixed(4)}
+SCR (calculado): ${SCR.toFixed(4)}
+
+Coeficientes:
+β₀ (Intercepto):   ${beta_0.toFixed(4)}
+β₁ (Pendiente):    ${beta_1.toFixed(4)}
+
+Bondad de Ajuste:
+Coef. Correlación (r): ${(Sxy / Math.sqrt(Sxx * Syy)).toFixed(4)}
+Coef. Determinación (R²): ${R_cuadrado_calc.toFixed(4)}
+Error Estándar (s):       ${s.toFixed(4)} (s² = SCE / (n-2))
+                    </pre>
+                `;
+
+                // --- 2. Intervalos de Confianza ---
+                
+                const t_critico = getTValue(gl, alpha_2_key);
+
+                resultsHTML += `<h2>Intervalos de Confianza al ${confianza}% (α = ${alpha})</h2>`;
+
+                if (t_critico) {
+                    // IC para β₁
+                    const V_beta_1 = sigma_cuadrado / Sxx; 
+                    const SE_beta_1 = Math.sqrt(V_beta_1);
+                    const margin_error_b1 = t_critico * SE_beta_1;
+                    const b1_lower = beta_1 - margin_error_b1;
+                    const b1_upper = beta_1 + margin_error_b1;
+
+                    // IC para β₀
+                    // V(b0) = (s² * Σxᵢ²) / (n * Sxx)
+                    const V_beta_0 = (sigma_cuadrado * sum_x_sq) / (n * Sxx); 
+                    const SE_beta_0 = Math.sqrt(V_beta_0);
+                    const margin_error_b0 = t_critico * SE_beta_0;
+                    const b0_lower = beta_0 - margin_error_b0;
+                    const b0_upper = beta_0 + margin_error_b0;
+
+                    resultsHTML += `
+                        <pre>
+Grados de Libertad (n-2): ${gl}
+Valor t-crítico (t_${alpha_2_key}, ${gl}): ${t_critico.toFixed(4)} (de Tabla t-Student)
+
+Intervalo de Confianza para β₁ (Pendiente):
+  V(β₁) = s² / Sxx = ${V_beta_1.toFixed(6)}
+  EE(β₁) = √V(β₁) = ${SE_beta_1.toFixed(4)}
+  Margen de Error = t * EE(β₁) = ${margin_error_b1.toFixed(4)}
+  IC(β₁) = [${b1_lower.toFixed(4)} , ${b1_upper.toFixed(4)}]
+
+Intervalo de Confianza para β₀ (Intercepto):
+  V(β₀) = (s² * Σxᵢ²) / (n * Sxx) = ${V_beta_0.toFixed(6)}
+  (Valor Σxᵢ² usado: ${sum_x_sq.toFixed(4)})
+  EE(β₀) = √V(β₀) = ${SE_beta_0.toFixed(4)}
+  Margen de Error = t * EE(β₀) = ${margin_error_b0.toFixed(4)}
+  IC(β₀) = [${b0_lower.toFixed(4)} , ${b0_upper.toFixed(4)}]
+                        </pre>
+                    `;
+                } else if (gl > 20) {
+                     resultsHTML += `<div class="warning">Cálculo de IC omitido: Los grados de libertad (${gl}) son mayores a 20, que es el límite de la tabla t-Student incorporada.</div>`;
+                } else {
+                    resultsHTML += `<div class="warning">Cálculo de IC omitido: El nivel de significancia α=${alpha} (α/2 = ${alpha_2_key}) no se encuentra en la tabla t-Student provista.</div>`;
+                }
+
+
+                // --- 3. Tabla ANOVA ---
+
+                const df_reg = 1;
+                const df_tot = n - 1;
+                const MSR = SCR / df_reg; 
+                const MSE = SCE / gl; 
+                const F_calc = MSR / MSE; 
+
+                resultsHTML += `
+                    <h2>Prueba ANOVA</h2>
+                    <p>Prueba la significancia general del modelo (H₀: β₁ = 0 vs H₁: β₁ ≠ 0).</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fuente de Variación (FV)</th>
+                                <th>Suma de Cuadrados (SC)</th>
+                                <th>Grados de Libertad (gl)</th>
+                                <th>Cuadrado Medio (MC)</th>
+                                <th>F Calculado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Regresión</td>
+                                <td>${SCR.toFixed(4)}</td>
+                                <td>${df_reg}</td>
+                                <td>${MSR.toFixed(4)}</td>
+                                <td rowspan="2"><b>${F_calc.toFixed(4)}</b></td>
+                            </tr>
+                            <tr>
+                                <td>Error (Residual)</td>
+                                <td>${SCE.toFixed(4)}</td>
+                                <td>${gl}</td>
+                                <td>${MSE.toFixed(4)}</td>
+                            </tr>
+                            <tr>
+                                <td>Total</td>
+                                <td>${SCT.toFixed(4)}</td>
+                                <td>${df_tot}</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="nota">
+                        <b>Interpretación ANOVA:</b>
+                        <br>Se debe comparar el <b>F Calculado (${F_calc.toFixed(4)})</b> con un valor crítico <b>F(1-α, 1, n-2)</b>.
+                        <br>El PDF proporciona una tabla F para <b>α=0.05</b>. Si F Calculado > F Crítico(α=0.05), se rechaza H₀ con ese nivel de significancia.
+                    </div>
+                `;
+
+                // --- 4. Test Durbin-Watson ---
+
+                let sum_diff_e_sq = 0;
+                const residuos_ordenados_dw = [...residuos]; // Asumir que los residuos están en orden temporal
+                for (let i = 1; i < n; i++) {
+                    sum_diff_e_sq += Math.pow(residuos_ordenados_dw[i] - residuos_ordenados_dw[i-1], 2);
+                }
+                const D_calc = sum_diff_e_sq / SCE; 
+
+                const dw_values = getDWValues(n);
+                let dw_conclusion = "";
+                let dw_criticals = `(Valores críticos no encontrados para n=${n} en la tabla provista).`;
+
+                if (dw_values) {
+                    const { dL, dU } = dw_values;
+                    dw_criticals = `(Valores críticos para n=${n}, k'=1: dL=${dL}, dU=${dU})`;
+
+                    if (D_calc < dL) { 
+                        dw_conclusion = `<b>Conclusión: Se rechaza H₀.</b> Existe evidencia de autocorrelación positiva.`;
+                    } else if (D_calc > dU) { 
+                        dw_conclusion = `<b>Conclusión: No se rechaza H₀.</b> No hay evidencia de autocorrelación.`;
+                    } else { 
+                        dw_conclusion = `<b>Conclusión: Prueba no concluyente.</b>`;
+                    }
+                } else {
+                     dw_conclusion = `<div class="warning">No se pudo concluir la prueba. El valor de n=${n} está fuera del rango de la tabla Durbin-Watson provista (15 a 100).</div>`;
+                }
+
+
+                resultsHTML += `
+                    <h2>Prueba Durbin-Watson (Autocorrelación, α=0.05)</h2>
+                    <p>Prueba la autocorrelación de primer orden en los residuos (H₀: ρ = 0). Asume que los residuos se ingresaron en orden temporal.</p>
+                    <pre>
+Estadístico D Calculado: <b>${D_calc.toFixed(4)}</b>
+${dw_criticals}
+                    </pre>
+                    <div class="nota">
+                        <b>Interpretación Durbin-Watson:</b>
+                        <br>Reglas (para H₁: ρ > 0):
+                        <br>  - Si D < dL (${dw_values ? dw_values.dL : 'N/A'}): Se rechaza H₀
+                        <br>  - Si D > dU (${dw_values ? dw_values.dU : 'N/A'}): No se rechaza H₀
+                        <br>  - Si dL ≤ D ≤ dU: Test no concluyente
+                        <br>
+                        <br><b>${dw_conclusion}</b>
+                    </div>
+                `;
+
+                // --- 5. Test Kolmogorov-Smirnov (Normalidad de Residuos) ---
+                
+                // 5a. Tabla K-S (Cálculo Completo)
+                const e_sorted = [...residuos].sort((a, b) => a - b);
+                const z_residuos = e_sorted.map(e => e / s);
+                
+                let Dn_max = 0;
+                let ks_table = `
+                    <h3>Tabla de Desarrollo K-S (Cálculo Completo)</h3>
+                    <p>Esta tabla calcula el estadístico Dₙ correctamente, comparando Fₛ con Sₙ(i/n) y Sₙ((i-1)/n).</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>i</th>
+                                <th>Residuo Estandarizado (Zᵢ)</th>
+                                <th>F Teórica Fₛ(Zᵢ)</th>
+                                <th>F Empírica Sₙ(i/n)</th>
+                                <th>F Empírica Sₙ((i-1)/n)</th>
+                                <th>|Fₛ(Zᵢ) - Sₙ(i/n)|</th>
+                                <th>|Fₛ(Zᵢ) - Sₙ((i-1)/n)|</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                for (let i = 0; i < n; i++) {
+                    const z_i = z_residuos[i];
+                    const Fs_zi = normalCDF(z_i); 
+                    const Sn_i = (i + 1) / n;      
+                    const Sn_i_1 = i / n;          
+
+                    const diff1 = Math.abs(Fs_zi - Sn_i);
+                    const diff2 = Math.abs(Fs_zi - Sn_i_1);
+                    
+                    if (diff1 > Dn_max) Dn_max = diff1;
+                    if (diff2 > Dn_max) Dn_max = diff2;
+                    
+                    ks_table += `
+                        <tr>
+                            <td>${i+1}</td>
+                            <td>${z_i.toFixed(4)}</td>
+                            <td>${Fs_zi.toFixed(4)}</td>
+                            <td>${Sn_i.toFixed(4)}</td>
+                            <td>${Sn_i_1.toFixed(4)}</td>
+                            <td>${diff1.toFixed(4)}</td>
+                            <td>${diff2.toFixed(4)}</td>
+                        </tr>
+                    `;
+                }
+                
+                ks_table += `</tbody></table>`;
+                
+                // 5b. Tabla K-S (Formato Imagen)
+                
+                let ks_table_image = `
+                    <h3>Tabla de Desarrollo K-S (Formato Imagen)</h3>
+                    <p>Esta tabla sigue el formato de la imagen. La columna 'Datos' son los residuos originales ordenados (eᵢ).</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Datos (eᵢ)</th>
+                                <th>Orden (i)</th>
+                                <th>Sn (i/n)</th>
+                                <th>Z (eᵢ/s)</th>
+                                <th>F(zᵢ)</th>
+                                <th>|D| = |F(zᵢ) - Sn|</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                for (let i = 0; i < n; i++) {
+                    const e_i = e_sorted[i];
+                    const orden = i + 1;
+                    const Sn_i = orden / n;
+                    const z_i = z_residuos[i]; // Ya calculado y ordenado
+                    const Fs_zi = normalCDF(z_i);
+                    const D_abs = Math.abs(Fs_zi - Sn_i);
+                    
+                    ks_table_image += `
+                        <tr>
+                            <td>${e_i.toFixed(2)}</td>
+                            <td>${orden}</td>
+                            <td>${Sn_i.toFixed(2)}</td>
+                            <td>${z_i.toFixed(2)}</td>
+                            <td>${Fs_zi.toFixed(2)}</td>
+                            <td>${D_abs.toFixed(2)}</td>
+                        </tr>
+                    `;
+                }
+                
+                ks_table_image += `</tbody></table>`;
+                
+
+                // 5c. Conclusión K-S
+                const ks_crit_table = { 10: 0.41, 15: 0.34, 20: 0.29 }; 
+                
+                let Dn_critico = 1.36 / Math.sqrt(n); // Para n > 50
+                if (n <= 10) Dn_critico = 0.41;
+                else if (n <= 15) Dn_critico = 0.34;
+                else if (n <= 20) Dn_critico = 0.29;
+                else if (n <= 50) Dn_critico = 1.36 / Math.sqrt(n); 
+                
+                const conclusion_ks = (Dn_max > Dn_critico) ? 
+                    `<b>Se rechaza H₀</b> (Los residuos NO siguen una distribución normal).` : 
+                    `<b>No se rechaza H₀</b> (Los residuos parecen seguir una distribución normal).`;
+
+                resultsHTML += `
+                    <h2>Prueba Kolmogorov-Smirnov (Normalidad, α=0.05)</h2>
+                    <p>Prueba si los residuos estandarizados siguen una distribución normal (H₀: F(x) = Fₛ(x)).</p>
+                    <pre>
+Estadístico Dₙ Calculado: <b>${Dn_max.toFixed(4)}</b>  (Dₙ = max|Fₛ(x) - Sₙ(x)|)
+Valor Crítico Dₙ(α=0.05) para n=${n}: <b>${Dn_critico.toFixed(4)}</b> (Basado en tabla)
+                    </pre>
+                    <div class="nota">
+                        <b>Interpretación K-S (α=0.05):</b>
+                        <br>Comparamos Dₙ Calculado (${Dn_max.toFixed(4)}) con Dₙ Crítico (${Dn_critico.toFixed(4)}).
+                        <br>Si Dₙ > Dₙ(α), se rechaza H₀.
+                        <br>
+                        <br><b>${conclusion_ks}</b>
+                    </div>
+                    ${ks_table}
+                    ${ks_table_image}
+                `;
+
+                output.innerHTML = resultsHTML;
+
+            } catch (e) {
+                output.innerHTML = `<div class="error">Error: ${e.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

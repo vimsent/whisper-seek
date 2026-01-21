@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú Principal</title>
+    <style>
+        /* Reseteo básico y estilos del body */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Contenedor del menú */
+        .menu-container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            overflow: hidden; /* Para que los bordes redondeados afecten a los hijos */
+        }
+        
+        /* Estilo del encabezado */
+        .menu-header {
+            background-color: #007bff; /* Un color de acento */
+            color: white;
+            padding: 16px 24px;
+            text-align: center;
+            font-size: 1.25em;
+        }
+
+        /* Estilos de la lista de navegación */
+        nav ul {
+            list-style: none; /* Quita los puntos de la lista */
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Estilos de cada elemento (enlace) del menú */
+        nav ul li a {
+            display: block; /* Hace que todo el área sea clickeable */
+            padding: 16px 24px;
+            text-decoration: none; /* Quita el subrayado */
+            color: #333;
+            border-bottom: 1px solid #eee; /* Separador entre elementos */
+            transition: background-color 0.2s ease-in-out;
+        }
+
+        /* Quita el borde del último elemento */
+        nav ul li:last-child a {
+            border-bottom: none;
+        }
+
+        /* Efecto hover: cambia el color de fondo al pasar el mouse */
+        nav ul li a:hover {
+            background-color: #f0f0f0;
+            color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="menu-container">
+        <div class="menu-header">
+            Menú de Navegación
+        </div>
+        <nav>
+            <ul>
+                <li><a href="reg_lin.html">Regresión Lineal</a></li>
+                <li><a href="teor_colas.html">Teoría de Colas</a></li>
+                <li><a href="teor_decision.html">Teoría de Decisión</a></li>
+                <li><a href="teor_inv.html">Teoría de Inventarios</a></li>
+            </ul>
+        </nav>
+    </div>
+
+</body>
+</html>

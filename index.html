@@ -2,83 +2,77 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Menú Principal</title>
+    <title>Resumidor de Reuniones</title>
     <style>
-        /* Reseteo básico y estilos del body */
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        /* Contenedor del menú */
-        .menu-container {
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            width: 300px;
-            overflow: hidden; /* Para que los bordes redondeados afecten a los hijos */
-        }
-        
-        /* Estilo del encabezado */
-        .menu-header {
-            background-color: #007bff; /* Un color de acento */
-            color: white;
-            padding: 16px 24px;
-            text-align: center;
-            font-size: 1.25em;
-        }
-
-        /* Estilos de la lista de navegación */
-        nav ul {
-            list-style: none; /* Quita los puntos de la lista */
-            margin: 0;
-            padding: 0;
-        }
-
-        /* Estilos de cada elemento (enlace) del menú */
-        nav ul li a {
-            display: block; /* Hace que todo el área sea clickeable */
-            padding: 16px 24px;
-            text-decoration: none; /* Quita el subrayado */
-            color: #333;
-            border-bottom: 1px solid #eee; /* Separador entre elementos */
-            transition: background-color 0.2s ease-in-out;
-        }
-
-        /* Quita el borde del último elemento */
-        nav ul li:last-child a {
-            border-bottom: none;
-        }
-
-        /* Efecto hover: cambia el color de fondo al pasar el mouse */
-        nav ul li a:hover {
-            background-color: #f0f0f0;
-            color: #0056b3;
-        }
+        body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+        #status { margin-top: 1rem; color: #666; }
+        .result-box { background: #f4f4f4; padding: 1rem; margin-top: 1rem; border-radius: 8px; }
     </style>
 </head>
 <body>
+    <h1>Resumidor de Reuniones (DeepSeek R1)</h1>
+    
+    <button id="btnRecord">🎙️ Grabar</button>
+    <button id="btnStop" disabled>⏹️ Detener y Procesar</button>
+    
+    <div id="status">Esperando acción...</div>
 
-    <div class="menu-container">
-        <div class="menu-header">
-            Menú de Navegación
-        </div>
-        <nav>
-            <ul>
-                <li><a href="reg_lin.html">Regresión Lineal</a></li>
-                <li><a href="teor_colas.html">Teoría de Colas</a></li>
-                <li><a href="teor_decision.html">Teoría de Decisión</a></li>
-                <li><a href="teor_inv.html">Teoría de Inventarios</a></li>
-            </ul>
-        </nav>
+    <div id="results" style="display:none;">
+        <h3>Resumen:</h3>
+        <div id="summaryText" class="result-box"></div>
+        
+        <h3>Transcripción original:</h3>
+        <div id="transcriptionText" class="result-box" style="font-size: 0.9em; color: #555;"></div>
     </div>
 
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+        // IMPORTANTE: Cambia esto por la URL que te dio Ngrok
+        const API_URL = "https://joi-excludable-ulises.ngrok-free.dev"; 
+
+        document.getElementById("btnRecord").onclick = async () => {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+            
+            mediaRecorder.onstop = async () => {
+                document.getElementById("status").innerText = "Procesando... (Esto puede tardar según tu GPU)";
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                const formData = new FormData();
+                formData.append("file", audioBlob, "reunion.wav");
+
+                try {
+                    const response = await fetch(API_URL, {
+                        method: "POST",
+                        body: formData
+                    });
+                    const data = await response.json();
+                    
+                    document.getElementById("status").innerText = "¡Listo!";
+                    document.getElementById("results").style.display = "block";
+                    document.getElementById("summaryText").innerText = data.summary;
+                    document.getElementById("transcriptionText").innerText = data.transcription;
+                } catch (error) {
+                    document.getElementById("status").innerText = "Error al conectar con el servidor: " + error;
+                    console.error(error);
+                }
+            };
+
+            mediaRecorder.start();
+            document.getElementById("btnRecord").disabled = true;
+            document.getElementById("btnStop").disabled = false;
+            document.getElementById("status").innerText = "Grabando...";
+        };
+
+        document.getElementById("btnStop").onclick = () => {
+            mediaRecorder.stop();
+            document.getElementById("btnRecord").disabled = false;
+            document.getElementById("btnStop").disabled = true;
+        };
+    </script>
 </body>
 </html>
